@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tpu-cognition-mesh
+  namespace: tpu-serving-system
+  labels:
+    app: tpu-cognition-mesh
+spec:
+  serviceName: "tpu-mesh-headless"
+  replicas: 4  # 4 hosts forming a 32-chip TPU v5p pod slice
+  selector:
+    matchLabels:
+      app: tpu-cognition-mesh
+  template:
+    metadata:
+      labels:
+        app: tpu-cognition-mesh
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: mesh-worker
+        image: gcr.io/your-gcp-project/tpu-cognition-mesh:latest
+        imagePullPolicy: Always
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            echo "Starting TPU-CognitionMesh container on host $(hostname)..."
+            python3 -m scripts.run_hybrid_pipeline
+        resources:
+          limits:
+            google.com/tpu: "8"  # Requests 8 TPU v5p chips per pod node
+            cpu: "64"
+            memory: "256Gi"
+          requests:
+            google.com/tpu: "8"
+            cpu: "32"
+            memory: "128Gi"
+        env:
+        - name: PJRT_DEVICE
+          value: "TPU"
+        - name: XLA_PYTHON_CLIENT_MEM_FRACTION
+          value: "0.85"
+        - name: TPU_CHIPS_PER_HOST
+          value: "8"
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: tpu-shm
+          mountPath: /dev/shm
+        - name: model-cache
+          mountPath: /root/.cache/huggingface
+      volumes:
+      - name: tpu-shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: nfs-model-cache-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tpu-mesh-headless
+  namespace: tpu-serving-system
+spec:
+  clusterIP: None
+  selector:
+    app: tpu-cognition-mesh
+  ports:
+  - port: 12355
+    name: pjrt-coord

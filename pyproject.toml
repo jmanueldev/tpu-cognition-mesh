@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tpu-cognition-mesh"
+version = "0.1.0"
+description = "Hybrid JAX-PyTorch RL and Inference Mesh using MaxText, Tunix, TorchTPU, vLLM, and SGLang"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "jax[tpu]",
+    "torch>=2.5.0",
+    "torch-tpu",
+    "maxtext",
+    "google-tunix",
+    "vllm-torchtpu",
+    "sglang-torchtpu"
+]

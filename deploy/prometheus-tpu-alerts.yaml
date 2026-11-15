@@ -1,0 +1,46 @@
+groups:
+  - name: tpu_cognition_mesh_critical_alerts
+    rules:
+      - alert: TPUHBMHighUtilization
+        expr: (tpu_hbm_used_bytes / tpu_hbm_total_bytes) > 0.90
+        for: 2m
+        labels:
+          severity: warning
+          component: hbm-memory
+          mesh_layer: training-rollout
+        annotations:
+          summary: "TPU HBM memory usage is critically high (>90%)"
+          description: "TPU accelerator chip {{ $labels.accelerator_id }} on pod {{ $labels.pod_name }} has reached {{ $value | humanizePercentage }} HBM utilization. Immediate action required to prevent Out-Of-Memory (OOM) crashes during MaxText/vLLM operations."
+
+      - alert: TPUHBMCriticalOOMRisk
+        expr: (tpu_hbm_used_bytes / tpu_hbm_total_bytes) > 0.97
+        for: 30s
+        labels:
+          severity: critical
+          component: hbm-memory
+          mesh_layer: training-rollout
+        annotations:
+          summary: "Imminent TPU HBM Out-Of-Memory (OOM) Crash Risk (>97%)"
+          description: "Critical memory pressure on TPU core {{ $labels.accelerator_id }} (Pod: {{ $labels.pod_name }}). Utilization is at {{ $value | humanizePercentage }}. Workloads risk abrupt termination by the XLA runtime."
+
+      - alert: TPUThermalThrottlingActive
+        expr: tpu_core_throttling_indicator > 0 or tpu_hbm_temperature_celsius > 85
+        for: 1m
+        labels:
+          severity: critical
+          component: hardware-thermal
+          mesh_layer: infrastructure
+        annotations:
+          summary: "TPU Tensor Core (MXU) thermal throttling or high temperature detected"
+          description: "TPU accelerator {{ $labels.accelerator_id }} on pod {{ $labels.pod_name }} is experiencing thermal throttling or HBM temperature has exceeded safe limits (Current: {{ $value }}°C)."
+
+      - alert: TPUICILinkDegradation
+        expr: tpu_ici_link_health > 5 or rate(tpu_ici_packet_errors_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+          component: interconnect
+          mesh_layer: multi-host-pod
+        annotations:
+          summary: "TPU Inter-Chip Interconnect (ICI) link degradation detected"
+          description: "ICI link port {{ $labels.port_id }} on pod {{ $labels.pod_name }} shows an instability score of {{ $value }} (values above 5 indicate performance degradation; 10 is fatal). Multi-host communication latency or packet drops may occur."

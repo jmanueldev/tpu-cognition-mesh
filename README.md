@@ -91,15 +91,45 @@ TPU-CognitionMesh implements a **zero-copy weight sharing and async rollout brid
 ### Installation & Bridge Initialization
 
 ```bash
+# Spin up a TPU VM (recommended topology: v6e-8 or v5p-8)
+gcloud compute tpus tpu-vm create tpu-cognition-node \
+  --zone=us-central1-a \
+  --accelerator-type=v6e-8 \
+  --version=tpu-vm-v2-base
+
 # Clone the repository
 git clone https://github.com/jmanueldev/tpu-cognitionmesh.git
 cd tpu-cognitionmesh
 
 # Install dependencies for training and rollout planes
-pip install -r requirements.txt
+pip install --editable .
 
 # Initialize the zero-copy shared memory bridge on TPU pod
 python -m cognitionmesh.bridge --tpu-topology=v6e-256 --mode=initialize
+
+bash scripts/run_hybrid_pipeline.sh
+
+# How to Deploy the Alert Rules
+# Create or Update the ConfigMap in Kubernetes:
+
+kubectl create configmap prometheus-tpu-rules \
+  --from-file=deploy/prometheus-tpu-alerts.yaml \
+  -n tpu-serving-system \
+  --dry-run=client -o yaml | kubectl apply -f -
+# Ensure Prometheus Operator Picks Up the Rules:
+# If you are using the Prometheus Operator (PrometheusRule Custom Resource), # wrap the rules group inside a PrometheusRule resource:
+
+YAML
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tpu-cognition-mesh-rules
+  namespace: tpu-serving-system
+spec:
+  groups:
+    - name: tpu_cognition_mesh_critical_alerts
+      rules:
+        # (Paste the rules list from above here)
 ```
 
 8\. License
