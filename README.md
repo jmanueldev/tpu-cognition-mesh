@@ -92,7 +92,7 @@ TPU-CognitionMesh implements a **zero-copy weight sharing and async rollout brid
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/tpu-cognitionmesh.git
+git clone https://github.com/jmanueldev/tpu-cognitionmesh.git
 cd tpu-cognitionmesh
 
 # Install dependencies for training and rollout planes
