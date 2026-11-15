@@ -64,7 +64,12 @@ TPU-CognitionMesh implements a **zero-copy weight sharing and async rollout brid
 5\. Key Features & Innovations
 ------------------------------
 
-**FeatureSubsystemDescriptionZero-Copy Weight Sync**TorchTPU RuntimeMaps shared memory tensors across JAX and PyTorch runtimes on TPU v6e/v5p slices without host-disk roundtrips.**Optimized Post-Training**Tunix + MaxTextScales distributed reinforcement learning loops (GRPO) natively on OpenXLA substrates.**High-Throughput Rollouts**vLLM-TorchTPUAccelerates generation passes during RL training loops using paged attention.**Structured Serving**SGLang-TorchTPUEnables advanced speculative decoding and structured API generation directly on TPU topology.
+| Feature | Subsystem | Description |
+|---|---|---|
+| **Zero-Copy Weight Sync** | TorchTPU Runtime | Maps shared memory tensors across JAX and PyTorch runtimes on TPU v6e/v5p slices without host-disk roundtrips. |
+| **Optimized Post-Training** | Tunix + MaxText | Scales distributed reinforcement learning loops (GRPO) natively on OpenXLA substrates. |
+| **High-Throughput Rollouts** | vLLM-TorchTPU | Accelerates generation passes during RL training loops using paged attention. |
+| **Structured Serving** | SGLang-TorchTPU | Enables advanced speculative decoding and structured API generation directly on TPU topology. |
 
 6\. Business & Operational Benefits
 -----------------------------------
